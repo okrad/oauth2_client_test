@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   fetchList() async {
 
-    List l;
+    // List l;
 
     OAuth2Helper oauth2Helper;
 
