@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-// import 'package:kanbanapp/kanban.dart';
-// import 'package:kanbanapp/rest_client/kanbanrestclient.dart';
-import 'package:http/http.dart' as http;
+import 'package:oauth2_client/access_token_response.dart';
 import 'package:oauth2_client/github_oauth2_client.dart';
-import 'package:oauth2_client/oauth2_helper.dart';
-// import 'package:rest_client/response.dart';
 
 void main() => runApp(MyApp());
 
@@ -14,12 +9,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'oauth2_client Demo',
       theme: ThemeData(
         // This is the theme of your application.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(title: 'oauth2_client Demo'),
     );
   }
 }
@@ -44,40 +39,33 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  // KanbanRestClient client;
-  // Future<List<Kanban>> kanbanList;
+  String accessToken;
+
+  final clientIdController = TextEditingController();
+  final clientSecretController = TextEditingController();
+  final scopesController = TextEditingController();
 
   _MyHomePageState() {
-    // client = KanbanRestClient();
   }
 
   @override
   void initState() {
     super.initState();
-    fetchList();
   }
 
-  fetchList() async {
+  authorize() async {
+    AccessTokenResponse tokenResp;
 
-    // List l;
+    String clientId = clientIdController.text;
+    String clientSecret = clientSecretController.text;
+    List scopes = scopesController.text.split(',').map((s) => s.trim()).toList();
 
-    OAuth2Helper oauth2Helper;
+    GitHubOAuth2Client client = GitHubOAuth2Client(redirectUri: 'com.test.app://oauth2redirect', customUriScheme: 'com.test.app');
+    tokenResp = await client.getTokenWithAuthCodeFlow(clientId: clientId, clientSecret: clientSecret, scopes: scopes);
 
-    GitHubOAuth2Client client = GitHubOAuth2Client(redirectUri: 'com.teranet.app://oauth2redirect', customUriScheme: 'com.teranet.app');
-
-    oauth2Helper = OAuth2Helper(
-      client,
-      clientId: '1b4ae3dce468cf11baec',
-      clientSecret: '705144e604aae707696860a6b21934face94837a',
-      scopes: ['repo']);
-
-    // http.Response resp = await oauth2Helper.post(_getServiceUrl('list'));
-    // http.Response resp = await oauth2Helper.get('https://www.googleapis.com/drive/v3/files');
-    http.Response resp = await oauth2Helper.get('https://api.github.com/user/repos');
-
-print(resp.body);
-
-    // var list = jsonDecode(resp.body);
+    setState(() {
+      accessToken = tokenResp.accessToken;
+    });
 
   }
 
@@ -95,72 +83,53 @@ print(resp.body);
         // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Text('TEST')
+      body: Column(
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
+            child: Text('Client Id', style: TextStyle(fontSize: 14))
+          ),
+          TextField(
+            controller: clientIdController,
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
+            child: Text('Client Secret', style: TextStyle(fontSize: 14))
+          ),
+          TextField(
+            controller: clientSecretController,
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
+            child: Text('Scopes', style: TextStyle(fontSize: 14))
+          ),
+          TextField(
+            controller: scopesController,
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
+            child: Text('Access Token', style: TextStyle(fontSize: 14)),
+          ),
+          Text('$accessToken', style: TextStyle(fontSize: 14))
+        ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: fetchList,
-        tooltip: 'Get kanban list',
-        child: Icon(Icons.add),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: authorize,
+        label: Text('Authorize'),
+        // icon: Icon(Icons.add),
+        icon: Icon(Icons.lock_open),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
-/*
-  Widget _buildKanbanList() {
-    fetchKanbanList().then((list) {
-      return ListView.builder(
-        itemBuilder: (context, i) {
-          return _buildRow(i);
-        }
-      );
-    });
 
+  @override
+  void dispose() {
+    // Clean up the controller when the widget is disposed.
+    clientIdController.dispose();
+    clientSecretController.dispose();
+    scopesController.dispose();
+
+    super.dispose();
   }
-*/
-/*
-  Widget _buildRow(Kanban k) {
-    return ListTile(
-      title: Text(
-        k.name
-        // style: _biggerFont,
-      ),
 
-    );
-  }
-*/
-  void toast(String message) {
-    Fluttertoast.showToast(
-        msg: message,
-        gravity: ToastGravity.BOTTOM,
-        backgroundColor: Colors.blue,
-        textColor: Colors.white,
-        fontSize: 16.0,
-        timeInSecForIos: 3,
-        toastLength: Toast.LENGTH_LONG
-    );
-  }
-/*
-  Future<List<Kanban>> fetchKanbanList() async {
-
-    List<Kanban> list;
-
-    try {
-      list = await client.list();
-
-      if(list == null) {
-        // toast('Cannot retrieve kanban list. Error: ' + r.getString('text'));
-        toast('Cannot retrieve kanban list.');
-      }
-    } catch(err, s) {
-      toast('Authorization error: ' + (err.toString()));
-      print(err.toString());
-      print(s);
-      // rethrow;
-      // throw err;
-    }
-
-    return list;
-
-  }
-*/
 }
