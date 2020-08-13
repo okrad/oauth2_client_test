@@ -13,7 +13,7 @@ For example, if your redirect url is "my.custom.app://redirect", the _android:sc
 
 Run the app on an emulator or an actual device.
 
-Select the client type, then fill the TextFields with your application's client id, client secret and required scopes.
+Select the client type, then fill the TextFields with your application's client id, client secret and required scopes (as a comma separated list).
 
 Finally press the "Authorize" button.
 You should be redirected to the server authorization page.
