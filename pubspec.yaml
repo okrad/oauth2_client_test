@@ -1,5 +1,5 @@
 name: oauth2_client_test
-description: A new Flutter project.
+description: A test app for the oauth2_client library
 
 # The following defines the version and build number for your application.
 # A version number is three numbers separated by dots, like 1.2.43
@@ -17,6 +17,7 @@ environment:
   sdk: ">=2.1.0 <3.0.0"
 
 dependencies:
+  meta: ^1.1.8
   flutter:
     sdk: flutter
 
@@ -24,8 +25,9 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^0.1.2
 
-  oauth2_client: ^1.2.0
+  oauth2_client: ^1.4.0
   fluttertoast: ^3.1.3
+  random_string: ^2.0.1
 
 dev_dependencies:
   flutter_test:

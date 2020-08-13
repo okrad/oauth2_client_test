@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:oauth2_client/access_token_response.dart';
 import 'package:oauth2_client/github_oauth2_client.dart';
+import 'package:oauth2_client/google_oauth2_client.dart';
+import 'package:oauth2_client/linkedin_oauth2_client.dart';
+import 'package:oauth2_client/oauth2_client.dart';
+import 'package:oauth2_client/oauth2_helper.dart';
+import 'package:oauth2_client_test/discord_oauth2_client.dart';
+import 'package:oauth2_client_test/spotify_oauth2_client.dart';
 
 void main() => runApp(MyApp());
 
@@ -22,15 +27,6 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title}) : super(key: key);
 
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
   final String title;
 
   @override
@@ -38,71 +34,131 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
   String accessToken;
 
   final clientIdController = TextEditingController();
   final clientSecretController = TextEditingController();
   final scopesController = TextEditingController();
 
-  _MyHomePageState() {
-  }
+  final redirectUri = 'mytestapp://oauth2redirect';
+  final customUriScheme = 'mytestapp';
+
+  List _clientNames = ["GitHub", "Google", "LinkedIn", "Spotify", "Discord"];
+
+  List<DropdownMenuItem<String>> _dropDownMenuItems;
+  String _currentClient;
+
+  _MyHomePageState() {}
 
   @override
   void initState() {
+    _dropDownMenuItems = getDropDownMenuItems();
+    _currentClient = _dropDownMenuItems[0].value;
+
     super.initState();
   }
 
-  authorize() async {
-    AccessTokenResponse tokenResp;
+  List<DropdownMenuItem<String>> getDropDownMenuItems() {
+    List<DropdownMenuItem<String>> items = new List();
+    for (String clientName in _clientNames) {
+      items.add(
+          new DropdownMenuItem(value: clientName, child: new Text(clientName)));
+    }
+    return items;
+  }
 
-    String clientId = clientIdController.text;
-    String clientSecret = clientSecretController.text;
-    List scopes = scopesController.text.split(',').map((s) => s.trim()).toList();
-
-    GitHubOAuth2Client client = GitHubOAuth2Client(redirectUri: 'com.test.app://oauth2redirect', customUriScheme: 'com.test.app');
-    tokenResp = await client.getTokenWithAuthCodeFlow(clientId: clientId, clientSecret: clientSecret, scopes: scopes);
-
+  void changedDropDownItem(String selectedClient) {
     setState(() {
-      accessToken = tokenResp.accessToken;
+      _currentClient = selectedClient;
     });
+  }
 
+  authorize() async {
+    var client = getClient();
+
+    if (client != null) {
+      List scopes =
+          scopesController.text.split(',').map((s) => s.trim()).toList();
+
+      String clientId = clientIdController.text;
+      String clientSecret = clientSecretController.text;
+
+      var hlp = OAuth2Helper(client,
+          clientId: clientId, clientSecret: clientSecret, scopes: scopes);
+
+      var tokenResp = await hlp.getToken();
+
+      setState(() {
+        accessToken = tokenResp.accessToken;
+      });
+    }
+  }
+
+  OAuth2Client getClient() {
+    var client;
+
+    switch (_currentClient) {
+      case 'GitHub':
+        client = GitHubOAuth2Client(
+            redirectUri: redirectUri, customUriScheme: customUriScheme);
+        break;
+
+      case 'Google':
+        client = GoogleOAuth2Client(
+            redirectUri: redirectUri, customUriScheme: customUriScheme);
+        break;
+
+      case 'LinkedIn':
+        client = LinkedInOAuth2Client(
+            redirectUri: redirectUri, customUriScheme: customUriScheme);
+        break;
+
+      case 'Spotify':
+        client = SpotifyOAuth2Client(
+            redirectUri: redirectUri, customUriScheme: customUriScheme);
+        break;
+
+      case 'Discord':
+        client = DiscordOAuth2Client(
+            redirectUri: redirectUri, customUriScheme: customUriScheme);
+        break;
+    }
+
+    return client;
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Column(
         children: <Widget>[
           Padding(
             padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
-            child: Text('Client Id', style: TextStyle(fontSize: 14))
+            child: Text('Client Type', style: TextStyle(fontSize: 14)),
           ),
+          DropdownButton(
+            value: _currentClient,
+            items: _dropDownMenuItems,
+            onChanged: changedDropDownItem,
+          ),
+          Padding(
+              padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
+              child: Text('Client Id', style: TextStyle(fontSize: 14))),
           TextField(
             controller: clientIdController,
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
-            child: Text('Client Secret', style: TextStyle(fontSize: 14))
-          ),
+              padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
+              child: Text('Client Secret', style: TextStyle(fontSize: 14))),
           TextField(
             controller: clientSecretController,
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
-            child: Text('Scopes', style: TextStyle(fontSize: 14))
-          ),
+              padding: EdgeInsets.fromLTRB(0, 30, 0, 0),
+              child: Text('Scopes', style: TextStyle(fontSize: 14))),
           TextField(
             controller: scopesController,
           ),
@@ -114,9 +170,9 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        // onPressed: testAuthorize,
         onPressed: authorize,
         label: Text('Authorize'),
-        // icon: Icon(Icons.add),
         icon: Icon(Icons.lock_open),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
@@ -131,5 +187,4 @@ class _MyHomePageState extends State<MyHomePage> {
 
     super.dispose();
   }
-
 }
