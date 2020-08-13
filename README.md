@@ -9,8 +9,13 @@ For the sake of simplicity you can use _mytestapp://oauth2redirect_ as the redir
 
 If you want to use your own redirect uri instead, you *must* modify the _AndroidManifest.xml_ file changing the _android:scheme_ attribute to the custom scheme of your redirect url. Then you must change the _main.dart_ file, updating the two variables _redirectUri_ and _customUriScheme_ with the corresponding values.
 
-For example, if your redirect url is "my.custom.app://redirect", the _android:scheme_ attribute and the _customUriScheme_ variable will be "my.custom.app", whilde the _redirectUri_ variable will be "my.custom.app://redirect".
+For example, if your redirect url is "my.custom.app://redirect", the _android:scheme_ attribute and the _customUriScheme_ variable will be "my.custom.app", while the _redirectUri_ variable will be "my.custom.app://redirect".
 
 Run the app on an emulator or an actual device.
-Select the client type, then fill the TextFields with your application's client id, client secret and required scopes. Finally press the "Authorize" button.
-You should be redirected to the server authorization page. Once authorization is granted, you should be redirected back to the app and see the generated Access Token in the corresponding field.
+
+Select the client type, then fill the TextFields with your application's client id, client secret and required scopes.
+
+Finally press the "Authorize" button.
+You should be redirected to the server authorization page.
+
+Once you have granted authorization, you should be redirected back to the app and see the generated Access Token in the corresponding field.
